@@ -1,6 +1,6 @@
 # scanserver
 
-Simple python app
+Simple python app to expose linux `scanimage` with a web interface for a network scanner.
 
 ## Requirements
 
