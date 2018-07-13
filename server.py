@@ -66,7 +66,6 @@ def scan():
 	img.save(SCAN_DIR + filename, 'JPEG', quality=95)
 	page += 1
 
-	redirect('/?xnav=scan')
 	return template('scan', files=buildScanFileArray(), image=filename)
 
 @route('/pdf')
