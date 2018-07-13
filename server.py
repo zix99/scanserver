@@ -15,7 +15,7 @@ if not os.path.isdir(SCAN_DIR):
 def buildScanFileArray():
 	files = os.listdir(SCAN_DIR)
 	file_details = []
-	for f in files:
+	for f in sorted(files):
 		if f.endswith("jpg"):
 			stat = os.stat(SCAN_DIR + f)
 			file_details.append({
