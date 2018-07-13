@@ -23,7 +23,7 @@
 	<input type="submit" value="Scan" />
 </form>
 
-% if err:
+% if defined('err'):
 <pre style="color: red">
 {{err}}
 </pre>
@@ -48,7 +48,7 @@
 	% end
 </table>
 
-% if image
+% if defined('image'):
 	<h3>Scan</h3>
 	<img src="/scans/{{image}}" />
 % end

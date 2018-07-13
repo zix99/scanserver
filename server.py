@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from bottle import route, run, template, post, response, request, redirect, abort, static_file
+from bottle import route, run, template, post, get, response, request, redirect, abort, static_file
 from PIL import Image
 from StringIO import StringIO
 import subprocess
@@ -34,6 +34,10 @@ def scanpage():
 @route('/scans/<filename>')
 def convert(filename):
 	return static_file(filename, root=SCAN_DIR)
+
+@get('/scan')
+def scanredir():
+	redirect('/')
 
 @post('/scan')
 def scan():
