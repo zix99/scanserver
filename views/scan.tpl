@@ -33,18 +33,22 @@
 <a href="/pdf">Create PDF</a> | <a href="/deleteall" onclick="return confirm('Are you sure you wish to delete ALL files??? There is no undo!')"">Delete all</a><br />
 <table border="1" cellpadding="4" cellspacing="0">
 	<tr>
+		<th>#</th>
 		<th>Name</th>
 		<th>Size</th>
 		<th>Date</th>
 		<th>Actions</th>
 	</tr>
+	% page = 1
 	% for f in files:
 	<tr>
+		<td>{{page}}</td>
 		<td><a href="/scans/{{f['name']}}">{{f['name']}}</a></td>
 		<td>{{f['size']/1024}} KB</td>
 		<td>{{f['ts']}}</td>
 		<td><a href="/scans/{{f['name']}}/delete" onclick="return confirm('Are you sure you wish to delete {{f['name']}}?')">Delete</a></td>
 	</tr>
+	% page += 1
 	% end
 </table>
 
