@@ -12,8 +12,6 @@ SCAN_DIR = 'scans/'
 if not os.path.isdir(SCAN_DIR):
 	os.mkdir(SCAN_DIR)
 
-page = 1
-
 def buildScanFileArray():
 	files = os.listdir(SCAN_DIR)
 	file_details = []
@@ -41,7 +39,6 @@ def scanredir():
 
 @post('/scan')
 def scan():
-	global page
 	ppi = int(request.forms.get('ppi'))
 	mode = request.forms.get('mode')
 
@@ -62,9 +59,8 @@ def scan():
 		return template('scan', files=buildScanFileArray(), err='Scanimage returned code %d.  Is the printer on?\n%s' % (retcode, reterr))
 
 	img = Image.open(stream)
-	filename = 'page-%d.jpg' % page
+	filename = 'page-%d.jpg' % time.time()
 	img.save(SCAN_DIR + filename, 'JPEG', quality=95)
-	page += 1
 
 	return template('scan', files=buildScanFileArray(), image=filename)
 
