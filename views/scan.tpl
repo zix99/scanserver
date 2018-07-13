@@ -23,6 +23,12 @@
 	<input type="submit" value="Scan" />
 </form>
 
+% if err:
+<pre style="color: red">
+{{err}}
+</pre>
+% end
+
 <h2>Images</h2>
 <a href="/pdf">Create PDF</a> | <a href="/deleteall" onclick="return confirm('Are you sure you wish to delete ALL files??? There is no undo!')"">Delete all</a><br />
 <table border="1" cellpadding="4" cellspacing="0">
@@ -41,3 +47,8 @@
 	</tr>
 	% end
 </table>
+
+% if image
+	<h3>Scan</h3>
+	<img src="/scans/{{image}}" />
+% end

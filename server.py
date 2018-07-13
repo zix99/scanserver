@@ -14,8 +14,7 @@ if not os.path.isdir(SCAN_DIR):
 
 page = 1
 
-@route('/')
-def scanpage():
+def buildScanFileArray():
 	files = os.listdir(SCAN_DIR)
 	file_details = []
 	for f in files:
@@ -26,8 +25,11 @@ def scanpage():
 				"size": stat.st_size,
 				"ts": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(stat.st_mtime)),
 				})
+	return file_details
 
-	return template('scan', files=file_details)
+@route('/')
+def scanpage():
+	return template('scan', files=buildScanFileArray())
 
 @route('/scans/<filename>')
 def convert(filename):
@@ -40,7 +42,7 @@ def scan():
 	mode = request.forms.get('mode')
 
 	cmd = "scanimage --format=tiff --resolution %d --mode %s" % (ppi, mode)
-	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
+	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
 
 	stream = StringIO()
 	while True:
@@ -48,11 +50,20 @@ def scan():
 		if not buf: break
 		stream.write(buf)
 
+	retcode = p.wait()
+	reterr = p.stderr.read()
+	print reterr
+
+	if retcode != 0:
+		return template('scan', files=buildScanFileArray(), err='Scanimage returned code %d.  Is the printer on?\n%s' % (retcode, reterr))
+
 	img = Image.open(stream)
-	img.save(SCAN_DIR + 'page-%d.jpg' % page, 'JPEG', quality=95)
+	filename = 'page-%d.jpg' % page
+	img.save(SCAN_DIR + filename, 'JPEG', quality=95)
 	page += 1
 
 	redirect('/?xnav=scan')
+	return template('scan', files=buildScanFileArray(), image=filename)
 
 @route('/pdf')
 def pdf():
