@@ -8,6 +8,7 @@ import os
 
 PORT = 9012
 SCAN_DIR = 'scans/'
+TEST_IMAGE = os.getenv('TEST_IMAGE')
 
 if not os.path.isdir(SCAN_DIR):
 	os.mkdir(SCAN_DIR)
@@ -41,33 +42,47 @@ def scanredir():
 def scan():
 	ppi = int(request.forms.get('ppi'))
 	mode = request.forms.get('mode')
+	autocrop = request.forms.get('autocrop', False)
 
-	cmd = "scanimage --format=tiff --resolution %d --mode %s" % (ppi, mode)
-	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+	if TEST_IMAGE:
+		stream = TEST_IMAGE
+	else:
+		cmd = "scanimage --format=tiff --resolution %d --mode %s" % (ppi, mode)
+		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
 
-	stream = StringIO()
-	while True:
-		buf = p.stdout.read(1024)
-		if not buf: break
-		stream.write(buf)
+		stream = StringIO()
+		while True:
+			buf = p.stdout.read(1024)
+			if not buf: break
+			stream.write(buf)
 
-	retcode = p.wait()
-	reterr = p.stderr.read()
-	print reterr
+		retcode = p.wait()
+		reterr = p.stderr.read()
+		print reterr
 
-	if retcode != 0:
-		return template('scan', files=buildScanFileArray(), err='Scanimage returned code %d.  Is the printer on?\n%s' % (retcode, reterr))
+		if retcode != 0:
+			return template('scan', files=buildScanFileArray(), err='Scanimage returned code %d.  Is the printer on?\n%s' % (retcode, reterr))
 
 	img = Image.open(stream)
 	filename = 'page-%d.jpg' % time.time()
 	img.save(SCAN_DIR + filename, 'JPEG', quality=95)
+
+	if autocrop:
+		# Experimental feature.. doesn't seem to work great atm
+		area = subprocess.Popen("convert %s -morphology Dilate:5 Diamond:5,3 -fuzz 10%% -trim -format '%%xx%%h%%O' info:-" % (SCAN_DIR + filename), shell=True, stdout=subprocess.PIPE).stdout.read()
+		print area
+		cropProc = subprocess.Popen('convert %s -crop %s %s' % (SCAN_DIR + filename, area, SCAN_DIR + filename + '.other'), shell=True)
+		if cropProc.wait() != 0:
+			return template('scan', files=buildScanFileArray(), err='Scan autocrop returned code.')
+
+
 
 	return template('scan', files=buildScanFileArray(), image=filename)
 
 @route('/pdf')
 def pdf():
 	files = map(lambda x: SCAN_DIR + x, sorted(os.listdir(SCAN_DIR)))
-	cmd = "convert %s +compress pdf:-" % (str.join(' ', files))
+	cmd = "convert %s -compress jpeg pdf:-" % (str.join(' ', files))
 	p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
 
 	response.add_header('Content-type', 'application/pdf')
@@ -89,4 +104,4 @@ def delete():
 
 	redirect('/?xnav=delete')
 
-run(host='0.0.0.0', port=PORT, debug=True)
+run(host='0.0.0.0', port=PORT, debug=True, reloader=True if TEST_IMAGE else False)

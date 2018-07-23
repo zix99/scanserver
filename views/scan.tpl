@@ -9,8 +9,8 @@
 	<select name="ppi">
 		<option value="75">75 ppi</option>
 		<option value="100">100 ppi</option>
-		<option value="150">150 ppi</option>
-		<option value="300" selected>300 ppi</option>
+		<option value="150" selected>150 ppi</option>
+		<option value="300">300 ppi</option>
 		<option value="600">600 ppi</option>
 	</select>
 
